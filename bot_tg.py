@@ -18,6 +18,9 @@ MAIN_PATH = "/mnt/dav/Music"
 ADMIN = ""
 bot = telebot.TeleBot(nvgconfgtoken)
 
+def add_stat(htype, value):
+    req.post("/deadpool/entry.php", data={"htype":htype, "value":value})
+
 def get_proc():
     stream_cmd = os.popen("pgrep -f mpg321")
     response = stream_cmd.read()
@@ -110,6 +113,7 @@ def mount(message):
         c = "mount /mnt/dav"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        add_stat("mount","dav")
     
 @bot.message_handler(commands=['pulse'])
 def pulse(message):
@@ -117,6 +121,7 @@ def pulse(message):
         c = "pulseaudio -D"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        add_stat("pulse","-D")
         
 @bot.message_handler(commands=['play'])
 def play(message):
@@ -125,7 +130,9 @@ def play(message):
         if len(m) > 1:
             m = m[-1].replace(" ","\ ")
             playfile(message, None, m)
+            add_stat("music_play_play",m)
         else:
+            add_stat("music_play_error","play")
             bot.send_message(message.chat.id, f"Нет такого файла")
 
 @bot.message_handler(commands=['find'])
@@ -138,7 +145,9 @@ def find(message):
             print(s)
             song = process.extractOne(m,s)
             playfile(message, None, song)
+            add_stat("music_play_find",m)
         else:
+            add_stat("music_play_error","find")
             bot.send_message(message.chat.id, f"Нет такого пути")
         
 @bot.message_handler(commands=['shutdown'])
@@ -147,6 +156,7 @@ def shutdown(message):
         c = "shutdown"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        add_stat("shutdown","berry")
     
 @bot.message_handler(commands=['reboot'])
 def reboot(message):
@@ -154,6 +164,7 @@ def reboot(message):
         c = "reboot"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        add_stat("reboot","berry")
         
 def __kill():
     pids = get_proc()
@@ -167,6 +178,7 @@ def kill(message):
         __kill()
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(message.chat.id, "Стоп", reply_markup=markup)
+        add_stat("music_stop","stop")
     
 @bot.message_handler(commands=['volume',"громкость"])
 def volume(message):
@@ -177,6 +189,7 @@ def volume(message):
             with open("./volume.txt","w") as f:
                 f.write(m)
             bot.send_message(message.chat.id, f"Ок")
+            add_stat("music_volume",m)
         else:
             bot.send_message(message.chat.id, f"Например /volume 50")
 
@@ -189,6 +202,7 @@ def loops(message):
             with open("./loops.txt","w") as f:
                 f.write(m)
             bot.send_message(message.chat.id, f"Ок")
+            add_stat("music_loop",m)
         else:
             bot.send_message(message.chat.id, f"Например /loop 3")
 
@@ -220,5 +234,6 @@ def callback_inline(call):
                     break
                 file = s[j[0]].replace(" ","\ ")
                 playfile(call.message, j[1], file)
+                add_stat("music_play_nav", f"{MAIN_PATH}/{j[1]}/{file}")
             
 bot.polling(none_stop=True)
