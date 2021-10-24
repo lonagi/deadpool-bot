@@ -45,7 +45,7 @@ def runfile(folder, file):
         fpath = f"{folder}/{file}"
     else:
         fpath = f"{file}"
-    return f"pulseaudio -D & mpg321 {fpath} -K -v -l {loops} -g {getvolume} --stereo"
+    return f'pulseaudio -D & mpg321 "{fpath}" -K -v -l {loops} -g {getvolume} --stereo'
 
 def playfile(message, folder, file):
     markup = get_stop_markup()
@@ -55,7 +55,7 @@ def playfile(message, folder, file):
         fpath = f"{folder}/{file}"
     else:
         fpath = f"{file}"
-    fpath = fpath.replace("\ "," ").replace("\&","&")
+    fpath = fpath.replace("\&","&")
     
     #bot.send_message(message.chat.id, c, reply_markup=markup)
     bot.send_message(message.chat.id, f"Включаю {fpath}", reply_markup=markup)
@@ -134,7 +134,7 @@ def play(message):
     if ADMIN == str(message.chat.id):
         m = message.text.split(" ")
         if len(m) > 1:
-            m = " ".join(m[1:]).replace(" ","\ ").replace("&","\&")
+            m = " ".join(m[1:]).replace("&","\&")
             add_stat("music_play_play",m)
             playfile(message, None, m)
         else:
@@ -144,14 +144,14 @@ def play(message):
 def __find(message):
     m = message.text.split(" ")
     if len(m) > 1:
-        m = " ".join(m[1:]).replace(" ","\ ").replace("&","\&")
+        m = " ".join(m[1:]).replace("&","\&")
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(message.chat.id, "Ищу музыку...", reply_markup=markup)
 
         s = get_all_music()
         song = process.extractOne(m,s)
         add_stat("music_play_find",m)
-        playfile(message, None, song[0].replace(" ","\ ").replace("&","\&"))
+        playfile(message, None, song[0].replace("&","\&"))
     else:
         add_stat("music_play_error","find")
         bot.send_message(message.chat.id, f"Нет такого пути")
@@ -257,7 +257,7 @@ def callback_inline(call):
                     f.extend(dirnames)
                     s.extend(filenames)
                     break
-                file = s[50*(j[1]-1)+j[0]].replace(" ","\ ").replace("&","\&")
+                file = s[50*(j[1]-1)+j[0]].replace("&","\&")
                 add_stat("music_play_nav", f"{j[2]}/{file}")
                 playfile(call.message, j[2], file)
 
