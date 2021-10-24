@@ -11,7 +11,7 @@ try:
     import nvgconfg
     nvgconfgtoken = nvgconfg.token
 except:
-    pass
+    nvgconfgtoken = ""
 
 MAIN_PATH = "/mnt/dav/Music"
 ADMIN = ""
@@ -92,7 +92,7 @@ def volume(message):
                 f.write(m)
             bot.send_message(message.chat.id, f"Ok")
         else:
-            bot.send_message(message.chat.id, f"Например /loop 3")
+            bot.send_message(message.chat.id, f"Например /volume 50")
 
 @bot.message_handler(commands=['loop',"повтор"])
 def loops(message):
@@ -104,7 +104,7 @@ def loops(message):
                 f.write(m)
             bot.send_message(message.chat.id, f"Ok")
         else:
-            bot.send_message(message.chat.id, f"Например /volume 50")
+            bot.send_message(message.chat.id, f"Например /loop 3")
 
 @bot.message_handler(commands=['music','музыка','m',"м"])
 def music(message):
