@@ -72,15 +72,19 @@ def pulse(message):
         c = "pulseaudio -D"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        
+def __kill():
+    pids = get_proc()
+    if pids:
+        for pid in pids:
+            os.system(f"kill {pid}")
     
 @bot.message_handler(commands=['kill','stop','стоп'])
 def kill(message):
     if ADMIN == str(message.chat.id):
-        pids = get_proc()
-        if pids:
-            for pid in pids:
-                os.system(f"kill {pid}")
-        bot.send_message(message.chat.id, f"Stop")
+        __kill()
+        markup = types.ReplyKeyboardRemove(selective=False)
+        bot.send_message(message.chat.id, "Stop", reply_markup=markup)
     
 @bot.message_handler(commands=['volume',"громкость"])
 def volume(message):
@@ -120,7 +124,15 @@ def callback_inline(call):
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
                 navigate(bot, call.message, f"{MAIN_PATH}/{f}", "j")
             elif call.data[0] == "j":
-                bot.send_message(call.message.chat.id, "Включаю...")
+                __kill()
+                
+                markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+                ccs = ('/stop',)
+                for i in ccs:
+                    itembtn = types.KeyboardButton(i)
+                    markup.add(itembtn)
+                    
+                bot.send_message(call.message.chat.id, "Включаю...", reply_markup=markup)
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
                 
                 j = json.loads(call.data[1:])
@@ -137,15 +149,6 @@ def callback_inline(call):
                     loops=int(f.read())
                 c = f"pulseaudio -D & mpg321 {j[1]}/{file} -K -v -l {loops} -g {getvolume} --stereo"
                 os.system(c)
-                bot.send_message(call.message.chat.id, c)
-
-                markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                ccs = ('/stop',)
-                for i in ccs:
-                    itembtn = types.KeyboardButton(i)
-                    markup.add(itembtn)
-                bot.send_message(call.message.chat.id, "Управляй", reply_markup=markup)
-            else:
-                bot.send_message(call.message.chat.id, "Врубай музыку!)", reply_markup=None)
+                bot.send_message(call.message.chat.id, c, reply_markup=markup)
             
 bot.polling(none_stop=True)
