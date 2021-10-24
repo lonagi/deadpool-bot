@@ -68,6 +68,14 @@ def pulse(message):
     c = "pulseaudio -D"
     os.system(c)
     bot.send_message(message.chat.id, f"$ {c}")
+    
+@bot.message_handler(commands=['kill','stop','стоп'])
+def kill(message):
+    pids = get_proc()
+    if pids:
+        for pid in pids:
+            os.system(f"kill {pid}")
+    bot.send_message(message.chat.id, f"Stop")
 
 @bot.message_handler(commands=['music','музыка','m',"м"])
 def music(message):    
