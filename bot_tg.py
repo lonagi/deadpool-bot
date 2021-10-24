@@ -12,10 +12,10 @@ try:
     nvgconfgtoken = nvgconfg.token
 except:
     pass
-bot = telebot.TeleBot(nvgconfgtoken)
 
 MAIN_PATH = "/mnt/dav/Music"
 ADMIN = ""
+bot = telebot.TeleBot(nvgconfgtoken)
 
 def get_proc():
     stream_cmd = os.popen("pgrep -f mpg321")
@@ -51,7 +51,7 @@ def navigate(bot, message, path, pref = "i"):
     
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(message.chat.id):
         markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         ccs = ("/music", '/loop', '/volume', '/stop', '/pulse', '/mount')
         for i in ccs:
@@ -61,21 +61,21 @@ def start_message(message):
     
 @bot.message_handler(commands=['mount'])
 def mount(message):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(message.chat.id):
         c = "mount /mnt/dav"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
     
 @bot.message_handler(commands=['pulse'])
 def pulse(message):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(message.chat.id):
         c = "pulseaudio -D"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
     
 @bot.message_handler(commands=['kill','stop','стоп'])
 def kill(message):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(message.chat.id):
         pids = get_proc()
         if pids:
             for pid in pids:
@@ -84,28 +84,36 @@ def kill(message):
     
 @bot.message_handler(commands=['volume',"громкость"])
 def volume(message):
-    if ADMIN == message.chat.id:
-        m = message.text.split(" ")[-1]
-        with open("./volume.txt","w") as f:
-            f.write(m)
-        bot.send_message(message.chat.id, f"Ok")
+    if ADMIN == str(message.chat.id):
+        m = message.text.split(" ")
+        if len(m) > 1:
+            m = m[-1]
+            with open("./volume.txt","w") as f:
+                f.write(m)
+            bot.send_message(message.chat.id, f"Ok")
+        else:
+            bot.send_message(message.chat.id, f"Например /loop 3")
 
 @bot.message_handler(commands=['loop',"повтор"])
 def loops(message):
-    if ADMIN == message.chat.id:
-        m = message.text.split(" ")[-1]
-        with open("./loops.txt","w") as f:
-            f.write(m)
-        bot.send_message(message.chat.id, f"Ok")
+    if ADMIN == str(message.chat.id):
+        m = message.text.split(" ")
+        if len(m) > 1:
+            m = m[-1]
+            with open("./loops.txt","w") as f:
+                f.write(m)
+            bot.send_message(message.chat.id, f"Ok")
+        else:
+            bot.send_message(message.chat.id, f"Например /volume 50")
 
 @bot.message_handler(commands=['music','музыка','m',"м"])
 def music(message):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(message.chat.id):
         navigate(bot, message, MAIN_PATH)
     
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    if ADMIN == message.chat.id:
+    if ADMIN == str(call.message.chat.id):
         if call.message:
             if call.data[0] == "i":
                 f = call.data[1:]
