@@ -117,8 +117,12 @@ def callback_inline(call):
         if call.message:
             if call.data[0] == "i":
                 f = call.data[1:]
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
                 navigate(bot, call.message, f"{MAIN_PATH}/{f}", "j")
             elif call.data[0] == "j":
+                bot.send_message(call.message.chat.id, "Включаю...")
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
+                
                 j = json.loads(call.data[1:])
                 f,d,s = [],[],[]
                 for (dirpath, dirnames, filenames) in os.walk(j[1]):
@@ -140,6 +144,8 @@ def callback_inline(call):
                 for i in ccs:
                     itembtn = types.KeyboardButton(i)
                     markup.add(itembtn)
-                bot.send_message(message.chat.id, "Управляй", reply_markup=markup)
+                bot.send_message(call.message.chat.id, "Управляй", reply_markup=markup)
+            else:
+                bot.send_message(call.message.chat.id, "Врубай музыку!)", reply_markup=None)
             
 bot.polling(none_stop=True)
