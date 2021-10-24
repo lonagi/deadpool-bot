@@ -98,6 +98,8 @@ def navigate(bot, message, path, pref = "i"):
                 callback_button = types.InlineKeyboardButton(text=str(i), callback_data=f"{pref}{i}")
             keyboard.add(callback_button)
             p += 1
+        callback_button = types.InlineKeyboardButton(text="Закрыть", callback_data=f"close")
+        keyboard.add(callback_button)
         bot.send_message(message.chat.id, m, reply_markup=keyboard)
         time.sleep(1)
     
@@ -228,6 +230,8 @@ def callback_inline(call):
                 f = call.data[1:]
                 bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id, timeout=None)
                 navigate(bot, call.message, f"{MAIN_PATH}/{f}", "j")
+            elif call.data == "close":
+                bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id, timeout=None)
             elif call.data[0] == "j":
                 bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id, timeout=None)
                 
