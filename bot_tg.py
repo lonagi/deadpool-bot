@@ -76,6 +76,20 @@ def kill(message):
         for pid in pids:
             os.system(f"kill {pid}")
     bot.send_message(message.chat.id, f"Stop")
+    
+@bot.message_handler(commands=['volume',"громкость"])
+def volume(message):
+    m = message.text.split(" ")[-1]
+    with open("./volume.txt","w") as f:
+        f.write(m)
+    bot.send_message(message.chat.id, f"Ok")
+
+@bot.message_handler(commands=['loop',"повтор"])
+def loops(message):
+    m = message.text.split(" ")[-1]
+    with open("./loops.txt","w") as f:
+        f.write(m)
+    bot.send_message(message.chat.id, f"Ok")
 
 @bot.message_handler(commands=['music','музыка','m',"м"])
 def music(message):    
