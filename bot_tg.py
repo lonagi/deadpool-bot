@@ -221,6 +221,20 @@ def loops(message):
 def music(message):
     if ADMIN == str(message.chat.id):
         navigate(bot, message, MAIN_PATH)
+        
+@bot.message_handler(content_types=['voice'])
+def voice_processing(message):
+    file_info = bot.get_file(message.voice.file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    fpath = f'/root/tg/voices/{round(time.time())}.ogg'
+    fpath2 = fpath.replace(".ogg",".mp3")
+    with open(fpath, 'wb') as f:
+        f.write(downloaded_file)
+    add_stat("voice","telegram")
+    os.system(f"ffmpeg -i {fpath} {fpath2}")
+    time.sleep(2)
+    os.system(f"rm {fpath}")
+    playfile(message, None, fpath2)
     
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
