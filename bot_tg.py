@@ -72,6 +72,20 @@ def pulse(message):
         c = "pulseaudio -D"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+
+@bot.message_handler(commands=['shutdown'])
+def shutdown(message):
+    if ADMIN == str(message.chat.id):
+        c = "shutdown"
+        os.system(c)
+        bot.send_message(message.chat.id, f"$ {c}")
+    
+@bot.message_handler(commands=['reboot'])
+def reboot(message):
+    if ADMIN == str(message.chat.id):
+        c = "reboot"
+        os.system(c)
+        bot.send_message(message.chat.id, f"$ {c}")
         
 def __kill():
     pids = get_proc()
