@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 from telebot import types
+from fuzzywuzzy import process
 import keyboard
 import telebot
 import requests as req
@@ -11,7 +12,7 @@ try:
     import nvgconfg
     nvgconfgtoken = nvgconfg.token
 except:
-    nvgconfgtoken = ""
+    pass
 
 MAIN_PATH = "/mnt/dav/Music"
 ADMIN = ""
@@ -36,13 +37,36 @@ def runfile(folder, file):
         getvolume=int(f.read())
     with open("./loops.txt","r") as f:
         loops=int(f.read())
-    return f"pulseaudio -D & mpg321 {folder}/{file} -K -v -l {loops} -g {getvolume} --stereo"
+    if folder:
+        fpath = f"{folder}/{file}"
+    else:
+        fpath = f"{file}"
+    return f"pulseaudio -D & mpg321 {fpath} -K -v -l {loops} -g {getvolume} --stereo"
 
 def playfile(message, folder, file):
     markup = get_stop_markup()
     c = runfile(folder, file)
     os.system(c)
-    bot.send_message(message.chat.id, c, reply_markup=markup)
+    
+    if folder:
+        fpath = f"{folder}/{file}"
+    else:
+        fpath = f"{file}"
+    fpath = fpath.replace("\ "," ")
+    
+    #bot.send_message(message.chat.id, c, reply_markup=markup)
+    bot.send_message(message.chat.id, f"Включаю {fpath}", reply_markup=markup)
+
+def get_all_music():
+    s = []
+    for (_, dirnames, _) in os.walk(MAIN_PATH):
+        for d in dirnames:
+            for (_, _, filenames) in os.walk(f"{MAIN_PATH}/{d}"):
+                for f in filenames:
+                    s.append(f"{MAIN_PATH}/{d}/{f}")
+                break
+        break
+    return s
     
 def navigate(bot, message, path, pref = "i"):
     f,d,s = [],[],[]
@@ -97,12 +121,25 @@ def pulse(message):
 @bot.message_handler(commands=['play'])
 def play(message):
     if ADMIN == str(message.chat.id):
-        pass
+        m = message.text.split(" ")
+        if len(m) > 1:
+            m = m[-1].replace(" ","\ ")
+            playfile(message, None, m)
+        else:
+            bot.send_message(message.chat.id, f"Нет такого файла")
 
 @bot.message_handler(commands=['find'])
 def find(message):
     if ADMIN == str(message.chat.id):
-        pass
+        m = message.text.split(" ")
+        if len(m) > 1:
+            m = m[-1]
+            s = get_all_music()
+            print(s)
+            song = process.extractOne(m,s)
+            playfile(message, None, song)
+        else:
+            bot.send_message(message.chat.id, f"Нет такого пути")
         
 @bot.message_handler(commands=['shutdown'])
 def shutdown(message):
@@ -122,14 +159,14 @@ def __kill():
     pids = get_proc()
     if pids:
         for pid in pids:
-            os.system(f"kill {pid}")
+            os.system(f"убиваю процесс {pid}")
     
 @bot.message_handler(commands=['kill','stop','стоп'])
 def kill(message):
     if ADMIN == str(message.chat.id):
         __kill()
         markup = types.ReplyKeyboardRemove(selective=False)
-        bot.send_message(message.chat.id, "Stop", reply_markup=markup)
+        bot.send_message(message.chat.id, "Стоп", reply_markup=markup)
     
 @bot.message_handler(commands=['volume',"громкость"])
 def volume(message):
@@ -139,7 +176,7 @@ def volume(message):
             m = m[-1]
             with open("./volume.txt","w") as f:
                 f.write(m)
-            bot.send_message(message.chat.id, f"Ok")
+            bot.send_message(message.chat.id, f"Ок")
         else:
             bot.send_message(message.chat.id, f"Например /volume 50")
 
@@ -151,7 +188,7 @@ def loops(message):
             m = m[-1]
             with open("./loops.txt","w") as f:
                 f.write(m)
-            bot.send_message(message.chat.id, f"Ok")
+            bot.send_message(message.chat.id, f"Ок")
         else:
             bot.send_message(message.chat.id, f"Например /loop 3")
 
@@ -166,13 +203,13 @@ def callback_inline(call):
         if call.message:
             if call.data[0] == "i":
                 f = call.data[1:]
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
+                chat_id=call.message.chat.id, message_id=call.message.message_id
                 navigate(bot, call.message, f"{MAIN_PATH}/{f}", "j")
             elif call.data[0] == "j":
                 __kill()
                 markup = get_stop_markup()
                 bot.send_message(call.message.chat.id, "Включаю...", reply_markup=markup)
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
+                bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id, timeout=None)
                 
                 j = json.loads(call.data[1:])
                 f,d,s = [],[],[]
