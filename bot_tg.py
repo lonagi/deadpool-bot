@@ -232,8 +232,9 @@ def voice_processing(message):
         f.write(downloaded_file)
     add_stat("voice","telegram")
     os.system(f"ffmpeg -i {fpath} {fpath2}")
-    time.sleep(2)
+    time.sleep(1)
     os.system(f"rm {fpath}")
+    time.sleep(1)
     playfile(message, None, fpath2)
     
 @bot.callback_query_handler(func=lambda call: True)
