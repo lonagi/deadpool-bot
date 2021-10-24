@@ -22,6 +22,27 @@ def get_proc():
     response = stream_cmd.read()
     response = [i for i in response.split('\n') if i != '']
     return response
+
+def get_stop_markup():
+    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    ccs = ('/stop',)
+    for i in ccs:
+        itembtn = types.KeyboardButton(i)
+        markup.add(itembtn)
+    return markup
+
+def runfile(folder, file):
+    with open("./volume.txt","r") as f:
+        getvolume=int(f.read())
+    with open("./loops.txt","r") as f:
+        loops=int(f.read())
+    return f"pulseaudio -D & mpg321 {folder}/{file} -K -v -l {loops} -g {getvolume} --stereo"
+
+def playfile(message, folder, file):
+    markup = get_stop_markup()
+    c = runfile(folder, file)
+    os.system(c)
+    bot.send_message(message.chat.id, c, reply_markup=markup)
     
 def navigate(bot, message, path, pref = "i"):
     f,d,s = [],[],[]
@@ -72,7 +93,17 @@ def pulse(message):
         c = "pulseaudio -D"
         os.system(c)
         bot.send_message(message.chat.id, f"$ {c}")
+        
+@bot.message_handler(commands=['play'])
+def play(message):
+    if ADMIN == str(message.chat.id):
+        pass
 
+@bot.message_handler(commands=['find'])
+def find(message):
+    if ADMIN == str(message.chat.id):
+        pass
+        
 @bot.message_handler(commands=['shutdown'])
 def shutdown(message):
     if ADMIN == str(message.chat.id):
@@ -139,13 +170,7 @@ def callback_inline(call):
                 navigate(bot, call.message, f"{MAIN_PATH}/{f}", "j")
             elif call.data[0] == "j":
                 __kill()
-                
-                markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-                ccs = ('/stop',)
-                for i in ccs:
-                    itembtn = types.KeyboardButton(i)
-                    markup.add(itembtn)
-                    
+                markup = get_stop_markup()
                 bot.send_message(call.message.chat.id, "Включаю...", reply_markup=markup)
                 bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Тут был список")
                 
@@ -157,12 +182,6 @@ def callback_inline(call):
                     s.extend(filenames)
                     break
                 file = s[j[0]].replace(" ","\ ")
-                with open("./volume.txt","r") as f:
-                    getvolume=int(f.read())
-                with open("./loops.txt","r") as f:
-                    loops=int(f.read())
-                c = f"pulseaudio -D & mpg321 {j[1]}/{file} -K -v -l {loops} -g {getvolume} --stereo"
-                os.system(c)
-                bot.send_message(call.message.chat.id, c, reply_markup=markup)
+                playfile(call.message, j[1], file)
             
 bot.polling(none_stop=True)
