@@ -265,5 +265,13 @@ def siri_find(message):
     if ADMIN == str(message.chat.id):
         if message.text.split(" ")[0] in ("Найди", "Включи", "Включаю", "Вруби"):
             __find(message)
+        elif message.text.split(" ")[0] in ("Громкость",):
+            volume(message)
+        elif message.text.split(" ")[0] in ("Музыка","Музон","Файлы",):
+            music(message)
+        elif message.text.split(" ")[0] in ("Повтор", "Повторы",):
+            loops(message)
+        elif message.text.split(" ")[0] in ("стоп", "Стоп", "Выключи"):
+            kill(message)
             
 bot.polling(none_stop=True)
