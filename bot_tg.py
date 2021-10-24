@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
 from telebot import types
+import keyboard
 import telebot
 import requests as req
-import datetime, re, json, os, json
+import datetime, re, json, os, json, time
 
 
 try:
@@ -14,6 +15,12 @@ except:
 bot = telebot.TeleBot(nvgconfgtoken)
 
 MAIN_PATH = "/mnt/dav/Music"
+
+def get_proc():
+    stream_cmd = os.popen("pgrep -f mpg321")
+    response = stream_cmd.read()
+    response = [i for i in response.split('\n') if i != '']
+    return response
     
 def navigate(bot, message, path, pref = "i"):
     f,d,s = [],[],[]
@@ -44,7 +51,7 @@ def navigate(bot, message, path, pref = "i"):
 @bot.message_handler(commands=['start'])
 def start_message(message):
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    ccs = ("/music", '/pulse', '/mount', '/kill',)
+    ccs = ("/music", '/loop', '/volume', '/stop', '/pulse', '/mount')
     for i in ccs:
         itembtn = types.KeyboardButton(i)
         markup.add(itembtn)
@@ -59,12 +66,6 @@ def mount(message):
 @bot.message_handler(commands=['pulse'])
 def pulse(message):
     c = "pulseaudio -D"
-    os.system(c)
-    bot.send_message(message.chat.id, f"$ {c}")
-    
-@bot.message_handler(commands=['kill'])
-def kill(message):
-    c = "kill"
     os.system(c)
     bot.send_message(message.chat.id, f"$ {c}")
 
@@ -87,7 +88,12 @@ def callback_inline(call):
                 s.extend(filenames)
                 break
             file = s[j[0]].replace(" ","\ ")
-            c = f"pulseaudio -D & mpg321 {j[1]}/{file} -K -v -l 0 -g 10"
+            with open("./volume.txt","r") as f:
+                getvolume=int(f.read())
+            with open("./loops.txt","r") as f:
+                loops=int(f.read())
+            c = f"pulseaudio -D & mpg321 {j[1]}/{file} -K -v -l {loops} -g {getvolume} --stereo"
             os.system(c)
+            bot.send_message(call.message.chat.id, c)
             
 bot.polling(none_stop=True)
