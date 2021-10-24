@@ -96,4 +96,11 @@ def callback_inline(call):
             os.system(c)
             bot.send_message(call.message.chat.id, c)
             
+            markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            ccs = ('/stop',)
+            for i in ccs:
+                itembtn = types.KeyboardButton(i)
+                markup.add(itembtn)
+            bot.send_message(message.chat.id, "Управляй", reply_markup=markup)
+            
 bot.polling(none_stop=True)
