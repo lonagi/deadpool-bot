@@ -129,7 +129,7 @@ def pulse(message):
         add_stat("pulse","-D")
         bot.send_message(message.chat.id, f"$ {c}")
         
-@bot.message_handler(commands=['play'])
+@bot.message_handler(commands=['play','путь'])
 def play(message):
     if ADMIN == str(message.chat.id):
         m = message.text.split(" ")
@@ -191,7 +191,7 @@ def kill(message):
         markup = types.ReplyKeyboardRemove(selective=False)
         bot.send_message(message.chat.id, "Стоп", reply_markup=markup)
     
-@bot.message_handler(commands=['volume',"громкость"])
+@bot.message_handler(commands=['volume',])
 def volume(message):
     if ADMIN == str(message.chat.id):
         m = message.text.split(" ")
@@ -203,6 +203,12 @@ def volume(message):
             add_stat("music_volume",m)
         else:
             bot.send_message(message.chat.id, f"Например /volume 50")
+
+@bot.message_handler(commands=['громкость',])
+def volume_read(message):
+    if ADMIN == str(message.chat.id):
+        with open("./volume.txt","r") as f:
+            bot.send_message(message.chat.id, f.read())
 
 @bot.message_handler(commands=['loop',"повтор"])
 def loops(message):
@@ -216,6 +222,12 @@ def loops(message):
             add_stat("music_loop",m)
         else:
             bot.send_message(message.chat.id, f"Например /loop 3")
+
+@bot.message_handler(commands=['loops',"повторы"])
+def loops_read(message):
+    if ADMIN == str(message.chat.id):
+        with open("./loops.txt","r") as f:
+            bot.send_message(message.chat.id, f.read())
 
 @bot.message_handler(commands=['music','музыка','m',"м"])
 def music(message):
@@ -232,9 +244,10 @@ def voice_processing(message):
         f.write(downloaded_file)
     add_stat("voice","telegram")
     os.system(f"ffmpeg -i {fpath} {fpath2}")
-    time.sleep(1)
+    time.sleep(0.5)
     os.system(f"rm {fpath}")
-    time.sleep(1)
+    time.sleep(0.5)
+    pulse(message)
     playfile(message, None, fpath2)
     
 @bot.callback_query_handler(func=lambda call: True)
@@ -264,15 +277,21 @@ def callback_inline(call):
 @bot.message_handler(content_types=['text'])
 def siri_find(message):
     if ADMIN == str(message.chat.id):
-        if message.text.split(" ")[0] in ("Найди", "Включи", "Включаю", "Вруби"):
+        ccmd = message.text.split(" ") 
+        cmd = ccmd[0].lower()
+        if cmd in ("найди", "включи", "включаю", "вруби"):
             __find(message)
-        elif message.text.split(" ")[0] in ("Громкость",):
+        elif len(ccmd) == 1 and cmd in ("громкость",):
+            volume_read(message)
+        elif cmd in ("громкость",):
             volume(message)
-        elif message.text.split(" ")[0] in ("Музыка","Музон","Файлы",):
+        elif cmd in ("музыка","музон","файлы",):
             music(message)
-        elif message.text.split(" ")[0] in ("Повтор", "Повторы",):
+        elif len(ccmd) == 1 and cmd in ("повтор", "повторы",):
+            loops_read(message)
+        elif cmd in ("повтор", "повторы",):
             loops(message)
-        elif message.text.split(" ")[0] in ("стоп", "Стоп", "Выключи"):
+        elif cmd in ("стоп", "стоп", "выключи"):
             kill(message)
             
 bot.polling(none_stop=True)
